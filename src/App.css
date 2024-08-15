@@ -1,0 +1,97 @@
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+
+/* Quill Editor Toolbar */
+.ql-toolbar {
+  background-image: linear-gradient(to right, #c7cedd, #ffffff); /* Gradient from blue-600 to purple-700 */
+}
+/* Change hover color for toolbar items */
+.ql-toolbar .ql:hover {
+  background-color: rgba(255, 255, 255, 0.2); /* Light background on hover */
+  border-color: rgba(243, 243, 243, 0.5); /* Light border on hover */
+}
+/* Specific hover color for each button */
+.ql-toolbar .ql-bold:hover {
+  background-color: #fcfcfc;
+}
+
+.ql-toolbar .ql-italic:hover {
+  background-color: #efeeee; /* Example color for italic button hover */
+}
+
+.ql-toolbar .ql-underline:hover {
+  background-color: #fafafa; /* Example color for underline button hover */
+}
+
+/* Additional styles for stroke and fill hover effects */
+.ql-toolbar .ql-stroke:hover {
+  stroke: #fff; /* Change stroke color on hover */
+}
+
+.ql-toolbar .ql-fill:hover {
+  fill: #fff; /* Change fill color on hover */
+}
+
+/* Quill Editor Content Area */
+.ql-container {
+  border-radius: 0 0 8px 8px;
+  height: calc(100vh - 150px);
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 950px;
+
+}
+
+
+/* Main App Container */
+.App {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #ffffffaa;
+  padding: 20px;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+  
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
