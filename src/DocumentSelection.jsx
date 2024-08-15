@@ -30,7 +30,7 @@ function SelectDocument() {
 
         if (userResponse.status === 401) {
           localStorage.removeItem('token');
-          navigate('/'); // Redirect to login if token is expired
+          // navigate('/'); // Redirect to login if token is expired
           return;
         }
 
@@ -41,7 +41,7 @@ function SelectDocument() {
 
       } catch (err) {
         console.error(err.message);
-        navigate('/'); // Redirect to login on error
+        // navigate('/'); // Redirect to login on error
       }
     };
 
