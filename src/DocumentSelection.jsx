@@ -64,6 +64,7 @@ function SelectDocument() {
 
   return (
     <div className="min-h-screen bg-gradient-to-r -mt-10">
+      
       <div className="bg-white p-8 rounded-lg h-screen  left-0 w-screen -ml-44">
       
         <div className="bg-white p-8 flex justify-between">
@@ -80,7 +81,7 @@ function SelectDocument() {
         </div>
         <div className="flex flex-wrap gap-4 mb-8">
           {documents.map((doc, index) => (
-            <Card key={index} id={doc.id} title={doc.title} createdAt={doc.createdAt} updatedAt={doc.updatedAt} author={doc.author.username} collaborators={doc.collaborators} />
+            <Card key={index} id={doc.id} title={doc.title} createdAt={doc.createdAt} updatedAt={doc.updatedAt} author={doc.author.username} content={doc.content} collaborators={doc.collaborators} />
           ))}
           <button
             onClick={() => setIsModalOpen(true)}
