@@ -1,23 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams,useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import { connectSocket, updateDocument, setContent } from './editorSlice';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { debounce } from 'lodash';
 import './App.css';
 
 function Editor() {
   const { documentId } = useParams();
   const dispatch = useDispatch();
   const content = useSelector((state) => state.editor.content);
+  const version = useSelector((state) => state.editor.version);
   const socketRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCollaborator, setSelectedCollaborator] = useState(null);
   const [users, setUsers] = useState([]);
-  const [activeUser , setActiveUser] = useState(null);
-  const [documentName , setDocumentName] = useState('');
+  const [activeUser, setActiveUser] = useState(null);
+  const [documentName, setDocumentName] = useState('');
 
   const navigate = useNavigate();
 
@@ -43,8 +45,6 @@ function Editor() {
 
         const userData = await userResponse.json();
         setActiveUser(userData);
-
-
       } catch (err) {
         console.error(err.message);
         navigate('/'); // Redirect to login on error
@@ -55,13 +55,14 @@ function Editor() {
   }, [navigate]);
 
   useEffect(() => {
-    // Fetch the document content when the component mounts
+    // Fetch the document content and version when the component mounts
     const fetchDocument = async () => {
       try {
         const response = await fetch(`https://googledocapi-3.onrender.com/api/documents/${documentId}`);
         const data = await response.json();
-        setDocumentName(data.data.title)
-        dispatch(setContent(data.data.attributes?.content));
+        setDocumentName(data.data.title);
+        dispatch(setContent(data.data.content));
+        dispatch({ type: 'SET_VERSION', payload: data.data.version }); // Set initial version
       } catch (error) {
         console.error('Failed to fetch document:', error);
       }
@@ -74,9 +75,12 @@ function Editor() {
     socketRef.current.emit('join_room', documentId); // Join room for the document
 
     socketRef.current.on('document_update', (data) => {
-      if (data.documentId === documentId) {
-        dispatch(setContent(data.content)); // Update content in the Redux store
-      }
+      dispatch(setContent(data.content)); // Update content in the Redux store
+      dispatch({ type: 'SET_VERSION', payload: data.version }); // Update version
+    });
+
+    socketRef.current.on('update_conflict', (data) => {
+      alert(`Version conflict detected. Current version is ${data.currentVersion}.`);
     });
 
     dispatch(connectSocket()); // Dispatch connectSocket action
@@ -101,11 +105,10 @@ function Editor() {
     fetchAllUsers();
   }, []);
 
-  const handleContentChange = (newContent) => {
-    console.log(documentName)
-    dispatch(updateDocument({ documentId, content: newContent })); // Update the document
-    socketRef.current.emit('document_update', { documentId, content: newContent }); // Emit update
-  };
+  // Debounced handleContentChange function
+  const handleContentChange = useRef(debounce((newContent) => {
+    dispatch(updateDocument({ documentId, content: newContent, version })); // Send version with the update
+  }, 500)).current;
 
   // Filter users based on the search query
   const filteredUsers = users.filter((user) =>
@@ -114,20 +117,19 @@ function Editor() {
 
   const handleSendInvitation = async () => {
     try {
-      console.log(documentName)
       const response = await fetch('https://googledocapi-3.onrender.com/api/invitations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({data:{
-          content: `${activeUser.username} invited you to collaborate in ${documentName} document`, // Assuming you might want to include content; otherwise, set this appropriately
-          user: selectedCollaborator.id, // The ID of the selected collaborator
-          document: documentId, // The document ID to which the invitation is related
-          status: 'pending', // The initial status of the invitation
+        body: JSON.stringify({ data: {
+          content: `${activeUser.username} invited you to collaborate in ${documentName} document`,
+          user: selectedCollaborator.id,
+          document: documentId,
+          status: 'pending',
         }}),
       });
-    
+
       if (response.ok) {
         alert('Invitation sent successfully!');
         setIsModalOpen(false);
@@ -135,12 +137,11 @@ function Editor() {
     } catch (error) {
       console.error('Failed to send invitation:', error);
     }
-    
   };
 
   return (
     <div className="App -mt-20">
-      <div className="flex justify-between items-center mb-2 ">
+      <div className="flex justify-between items-center mb-2">
         <div className="quill-editor">
           <ReactQuill
             value={content}
@@ -149,13 +150,13 @@ function Editor() {
             className="ql-container w-fit"
           />
         </div>
-        <div className='  fixed top-5 left-1 w-full z-20'>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className=" bg-blue-600 border border-white text-white rounded-lg hover:bg-white hover:text-black"
-        >
-          Add Collaborators
-        </button>
+        <div className='fixed top-20 left-96 ml-60 w-full'>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 border border-white text-white rounded-lg hover:bg-white hover:text-black"
+          >
+            Add Collaborators
+          </button>
         </div>
       </div>
 
